@@ -3,7 +3,7 @@ FROM altsgamerlab/keycloak-user-migration:latest
 USER root
 
 COPY . /project
-RUN cd /project && ./mvnw clean package
+RUN cd /project && chmod +x mvnw && ./mvnw clean install
 
 FROM altsgamerlab/keycloak-user-migration:latest
 USER root
