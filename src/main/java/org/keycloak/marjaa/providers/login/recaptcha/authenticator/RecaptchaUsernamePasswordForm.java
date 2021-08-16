@@ -118,7 +118,7 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 		List<NameValuePair> formparams = new LinkedList<>();
 		formparams.add(new BasicNameValuePair("secret", secret));
 		formparams.add(new BasicNameValuePair("response", captcha));
-		formparams.add(new BasicNameValuePair("remoteip", context.getConnection().getRemoteAddr()));
+		//formparams.add(new BasicNameValuePair("remoteip", context.getConnection().getRemoteAddr()));
 		try {
 			UrlEncodedFormEntity form = new UrlEncodedFormEntity(formparams, "UTF-8");
 			post.setEntity(form);
