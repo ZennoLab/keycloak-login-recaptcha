@@ -32,14 +32,14 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 	public static final String USE_RECAPTCHA_NET = "useRecaptchaNet";
 	private static final Logger logger = Logger.getLogger(RecaptchaUsernamePasswordForm.class);
 
-	private String siteKey;
+	//private String siteKey;
 
-	@Override
+	/*@Override
 	protected Response createLoginForm( LoginFormsProvider form ) {
-		form.setAttribute("recaptchaRequired", true);
+		form.setAttribute("recaptchaRequired", false);
 		form.setAttribute("recaptchaSiteKey", siteKey);
 		return super.createLoginForm( form );
-	}
+	}*/
 
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
@@ -49,23 +49,28 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 					"validateRecaptcha(AuthenticationFlowContext, boolean, String, String) - Before the validation");
 		}
 
+		displayRecaptcha(context);
+
+		super.authenticate(context);
+	}
+
+	private void displayRecaptcha(AuthenticationFlowContext context) {
+		LoginFormsProvider forms = context.form();
 		AuthenticatorConfigModel captchaConfig = context.getAuthenticatorConfig();
-		LoginFormsProvider form = context.form();
 		String userLanguageTag = context.getSession().getContext().resolveLocale(context.getUser()).toLanguageTag();
 
 		if (captchaConfig == null || captchaConfig.getConfig() == null
 				|| captchaConfig.getConfig().get(SITE_KEY) == null
 				|| captchaConfig.getConfig().get(SITE_SECRET) == null) {
-			form.addError(new FormMessage(null, Messages.RECAPTCHA_NOT_CONFIGURED));
+			forms.addError(new FormMessage(null, Messages.RECAPTCHA_NOT_CONFIGURED));
 			return;
 		}
-		siteKey = captchaConfig.getConfig().get(SITE_KEY);
-		form.setAttribute("recaptchaRequired", true);
-		form.setAttribute("recaptchaSiteKey", siteKey);
-		form.addScript("https://www." + getRecaptchaDomain(captchaConfig) + "/recaptcha/api.js?hl=" + userLanguageTag);
 
-		super.authenticate(context);
-	}
+		String siteKey = captchaConfig.getConfig().get(SITE_KEY);
+		forms.setAttribute("recaptchaRequired", true);
+		forms.setAttribute("recaptchaSiteKey", siteKey);
+		forms.addScript("https://www." + getRecaptchaDomain(captchaConfig) + "/recaptcha/api.js?hl=" + userLanguageTag);
+  	}	
 
 	@Override
 	public void action(AuthenticationFlowContext context) {
@@ -84,14 +89,21 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 
 			success = validateRecaptcha(context, success, captcha, secret);
 		}
+
+		displayRecaptcha(context);
+
 		if (success) {
 			super.action(context);
 		} else {
 			errors.add(new FormMessage(null, Messages.RECAPTCHA_FAILED));
 			formData.remove(G_RECAPTCHA_RESPONSE);
-//			 context.error(Errors.INVALID_REGISTRATION);
+			// context.error(Errors.INVALID_REGISTRATION);
 			// context.validationError(formData, errors);
 			// context.excludeOtherErrors();
+			context.getEvent().error(Messages.RECAPTCHA_FAILED);
+			Response challengeResponse = context.form().setError(Messages.RECAPTCHA_FAILED).createLogin();
+			context.forceChallenge(challengeResponse);
+
 			return;
 		}
 
