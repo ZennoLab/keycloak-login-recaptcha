@@ -43,11 +43,9 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
+		logger.info("authenticate(AuthenticationFlowContext) start");
+
 		context.getEvent().detail(Details.AUTH_METHOD, "auth_method");
-		if (logger.isInfoEnabled()) {
-			logger.info(
-					"validateRecaptcha(AuthenticationFlowContext, boolean, String, String) - Before the validation");
-		}
 
 		displayRecaptcha(context);
 
@@ -127,6 +125,8 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 	}
 
 	protected boolean validateRecaptcha(AuthenticationFlowContext context, boolean success, String captcha, String secret) {
+		logger.info("validateRecaptcha(AuthenticationFlowContext, boolean, String, String) start");
+
 		HttpClient httpClient = context.getSession().getProvider(HttpClientProvider.class).getHttpClient();
 		HttpPost post = new HttpPost("https://www." + getRecaptchaDomain(context.getAuthenticatorConfig()) + "/recaptcha/api/siteverify");
 		List<NameValuePair> formparams = new LinkedList<>();
