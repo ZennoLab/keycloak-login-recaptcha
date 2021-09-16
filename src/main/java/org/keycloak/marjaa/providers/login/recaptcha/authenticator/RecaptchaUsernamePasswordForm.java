@@ -44,21 +44,21 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 	}
 
 	private void displayRecaptcha(AuthenticationFlowContext context) {
-		LoginFormsProvider forms = context.form();
 		AuthenticatorConfigModel captchaConfig = context.getAuthenticatorConfig();
+		LoginFormsProvider form = context.form();
 		String userLanguageTag = context.getSession().getContext().resolveLocale(context.getUser()).toLanguageTag();
 
 		if (captchaConfig == null || captchaConfig.getConfig() == null
 				|| captchaConfig.getConfig().get(SITE_KEY) == null
 				|| captchaConfig.getConfig().get(SITE_SECRET) == null) {
-			forms.addError(new FormMessage(null, Messages.RECAPTCHA_NOT_CONFIGURED));
+			form.addError(new FormMessage(null, Messages.RECAPTCHA_NOT_CONFIGURED));
 			return;
 		}
 
 		String siteKey = captchaConfig.getConfig().get(SITE_KEY);
-		forms.setAttribute("recaptchaRequired", true);
-		forms.setAttribute("recaptchaSiteKey", siteKey);
-		forms.addScript("https://www." + getRecaptchaDomain(captchaConfig) + "/recaptcha/api.js?hl=" + userLanguageTag);
+		form.setAttribute("recaptchaRequired", true);
+		form.setAttribute("recaptchaSiteKey", siteKey);
+		form.addScript("https://www." + getRecaptchaDomain(captchaConfig) + "/recaptcha/api.js?hl=" + userLanguageTag);
   	}	
 
 	@Override
