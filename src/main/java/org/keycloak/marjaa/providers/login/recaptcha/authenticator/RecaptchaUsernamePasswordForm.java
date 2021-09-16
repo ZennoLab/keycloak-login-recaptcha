@@ -32,15 +32,6 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 	public static final String USE_RECAPTCHA_NET = "useRecaptchaNet";
 	private static final Logger logger = Logger.getLogger(RecaptchaUsernamePasswordForm.class);
 
-	//private String siteKey;
-
-	/*@Override
-	protected Response createLoginForm( LoginFormsProvider form ) {
-		form.setAttribute("recaptchaRequired", false);
-		form.setAttribute("recaptchaSiteKey", siteKey);
-		return super.createLoginForm( form );
-	}*/
-
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
 		logger.info("authenticate(AuthenticationFlowContext) start");
@@ -95,9 +86,7 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 		} else {
 			errors.add(new FormMessage(null, Messages.RECAPTCHA_FAILED));
 			formData.remove(G_RECAPTCHA_RESPONSE);
-			// context.error(Errors.INVALID_REGISTRATION);
-			// context.validationError(formData, errors);
-			// context.excludeOtherErrors();
+
 			context.getEvent().error(Messages.RECAPTCHA_FAILED);
 			Response challengeResponse = context.form()
 				.setError(Messages.RECAPTCHA_FAILED)
