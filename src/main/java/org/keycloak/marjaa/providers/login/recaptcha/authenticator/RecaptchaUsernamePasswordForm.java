@@ -101,7 +101,9 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 			// context.validationError(formData, errors);
 			// context.excludeOtherErrors();
 			context.getEvent().error(Messages.RECAPTCHA_FAILED);
-			Response challengeResponse = context.form().setError(Messages.RECAPTCHA_FAILED).createLogin();
+			Response challengeResponse = context.form()
+				.setError(Messages.RECAPTCHA_FAILED)
+				.createLoginUsernamePassword();
 			context.forceChallenge(challengeResponse);
 
 			return;
