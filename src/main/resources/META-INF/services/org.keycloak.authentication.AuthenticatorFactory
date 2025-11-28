@@ -16,3 +16,4 @@
 #
 
 org.keycloak.marjaa.providers.login.recaptcha.authenticator.RecaptchaUsernamePasswordFormFactory
+org.keycloak.marjaa.providers.login.recaptcha.authenticator.TurnstileUsernamePasswordFormFactory
