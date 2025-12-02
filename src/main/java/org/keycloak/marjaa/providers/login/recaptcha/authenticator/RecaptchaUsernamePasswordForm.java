@@ -8,6 +8,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
+import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.authenticators.browser.UsernamePasswordForm;
 import org.keycloak.connections.httpclient.HttpClientProvider;
@@ -73,7 +74,6 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 			logger.debug("action(AuthenticationFlowContext) - start");
 		}
 		MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
-		List<FormMessage> errors = new ArrayList<>();
 		boolean success = false;
 		context.getEvent().detail(Details.AUTH_METHOD, "auth_method");
 
@@ -87,11 +87,11 @@ public class RecaptchaUsernamePasswordForm extends UsernamePasswordForm implemen
 		if (success) {
 			super.action(context);
 		} else {
-			errors.add(new FormMessage(null, Messages.RECAPTCHA_FAILED));
 			formData.remove(G_RECAPTCHA_RESPONSE);
-//			 context.error(Errors.INVALID_REGISTRATION);
-			// context.validationError(formData, errors);
-			// context.excludeOtherErrors();
+            context.failureChallenge(
+                AuthenticationFlowError.INVALID_CREDENTIALS,
+                challenge(context, Messages.RECAPTCHA_FAILED));
+
 			return;
 		}
 

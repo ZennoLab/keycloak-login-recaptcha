@@ -8,6 +8,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
+import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.authenticators.browser.UsernamePasswordForm;
 import org.keycloak.connections.httpclient.HttpClientProvider;
@@ -83,7 +84,6 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 		logger.info("action: start");
 		
 		MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
-		List<FormMessage> errors = new ArrayList<>();
 		boolean success = false;
 		context.getEvent().detail(Details.AUTH_METHOD, "auth_method");
 
@@ -105,11 +105,11 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 		} else {
 			logger.info("action: turnstile validation failed");
 
-			errors.add(new FormMessage(null, MSG_TURNSTILE_FAILED));
 			formData.remove(CF_TURNSTILE_RESPONSE);
-			// context.error(Errors.INVALID_REGISTRATION);
-			// context.validationError(formData, errors);
-			// context.excludeOtherErrors();
+            context.failureChallenge(
+                AuthenticationFlowError.INVALID_CREDENTIALS,
+                challenge(context, MSG_TURNSTILE_FAILED));
+
 			return;
 		}
 
