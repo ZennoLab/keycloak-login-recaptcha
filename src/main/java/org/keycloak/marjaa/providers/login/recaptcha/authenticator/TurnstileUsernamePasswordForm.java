@@ -49,10 +49,8 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
 		context.getEvent().detail(Details.AUTH_METHOD, "auth_method");
-		if (logger.isInfoEnabled()) {
-			logger.info(
-					"validateTurnstile(AuthenticationFlowContext, boolean, String, String) - Before the validation");
-		}
+
+		logger.info("authenticate: start");
 
 		AuthenticatorConfigModel captchaConfig = context.getAuthenticatorConfig();
 		LoginFormsProvider form = context.form();
@@ -73,14 +71,17 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 		form.setAttribute("turnstileAction", cfConfig.getOrDefault(ACTION, DEFAULT_ACTION));
 		form.setAttribute("turnstileLanguage", userLanguageTag);
 
+		logger.info("authenticate: before base method call");
+
 		super.authenticate(context);
+
+		logger.info("authenticate: end");
 	}
 
 	@Override
 	public void action(AuthenticationFlowContext context) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("action(AuthenticationFlowContext) - start");
-		}
+		logger.info("action: start");
+		
 		MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
 		List<FormMessage> errors = new ArrayList<>();
 		boolean success = false;
@@ -95,8 +96,12 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 			success = validateTurnstile(context, success, captcha, secret, action);
 		}
 		if (success) {
+			logger.info("action: before base method call");
+
 			super.action(context);
 		} else {
+			logger.info("action: turnstile validation failed");
+
 			errors.add(new FormMessage(null, MSG_TURNSTILE_FAILED));
 			formData.remove(CF_TURNSTILE_RESPONSE);
 			// context.error(Errors.INVALID_REGISTRATION);
@@ -105,12 +110,12 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 			return;
 		}
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("action(AuthenticationFlowContext) - end");
-		}
+		logger.info("action: end");
 	}
 
 	protected boolean validateTurnstile(AuthenticationFlowContext context, boolean success, String captcha, String secret, String action) {
+		logger.info("validateTurnstile: start");
+
 		HttpClient httpClient = context.getSession().getProvider(HttpClientProvider.class).getHttpClient();
 		HttpPost post = new HttpPost("https://challenges.cloudflare.com/turnstile/v0/siteverify");
 		List<NameValuePair> formparams = new LinkedList<>();
@@ -134,6 +139,9 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 		} catch (Exception e) {
 			logger.errorf(e, "Failed to validate Turnstile response: %s", e.getMessage());
 		}
+
+		logger.info("validateTurnstile: end");
+
 		return success;
 	}
 

@@ -98,6 +98,13 @@ public class TurnstileUsernamePasswordFormFactory  implements AuthenticatorFacto
         property.setType(ProviderConfigProperty.STRING_TYPE);
         property.setHelpText("Cloudflare Turnstile Secret");
         CONFIG_PROPERTIES.add(property);
+
+        property = new ProviderConfigProperty();
+        property.setName(TurnstileUsernamePasswordForm.ACTION);
+        property.setLabel("Action");
+        property.setType(ProviderConfigProperty.STRING_TYPE);
+        property.setHelpText("A value that can be used to differentiate widgets under the same Site Key in analytics. Default value is 'login'");
+        CONFIG_PROPERTIES.add(property);
     }
 
 	@Override
