@@ -40,12 +40,14 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 
 	private String siteKey;
 	private String cfAction;
+	private String lang;
 
 	@Override
 	protected Response createLoginForm( LoginFormsProvider form ) {
 		form.setAttribute("turnstileRequired", true);
 		form.setAttribute("turnstileSiteKey", siteKey);
 		form.setAttribute("turnstileAction", cfAction);
+		form.setAttribute("turnstileLanguage", lang);
 		return super.createLoginForm( form );
 	}
 
@@ -57,7 +59,6 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 
 		AuthenticatorConfigModel captchaConfig = context.getAuthenticatorConfig();
 		LoginFormsProvider form = context.form();
-		String userLanguageTag = context.getSession().getContext().resolveLocale(context.getUser()).toLanguageTag();
 
 		if (captchaConfig == null || captchaConfig.getConfig() == null
 				|| captchaConfig.getConfig().get(SITE_KEY) == null
@@ -68,16 +69,22 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 		Map<String, String> cfConfig = captchaConfig.getConfig();
 		siteKey = cfConfig.get(SITE_KEY);
 		cfAction = cfConfig.getOrDefault(ACTION, DEFAULT_ACTION);
+		lang = context.getSession().getContext().resolveLocale(context.getUser()).toLanguageTag();
 
 		form.addScript("https://challenges.cloudflare.com/turnstile/v0/api.js");
 		form.setAttribute("turnstileRequired", true);
 		form.setAttribute("turnstileSiteKey", siteKey);
 		form.setAttribute("turnstileAction", cfAction);
-		form.setAttribute("turnstileLanguage", userLanguageTag);
+		form.setAttribute("turnstileLanguage", lang);
 
-		logger.infov("authenticate: set attributes: turnstileSiteKey='{0}', turnstileAction='{1}', turnstileLanguage='{2}'"
-			, siteKey, cfAction, userLanguageTag);
-		logger.infov("authenticate: before base method call");
+		//logger.infov("authenticate: set attributes: turnstileSiteKey='{0}', turnstileAction='{1}', turnstileLanguage='{2}'"
+		//	, siteKey, cfAction, userLanguageTag);
+		logger.info("authenticate: set attributes: turnstileSiteKey='"
+			+ siteKey + "', turnstileAction='"
+			+ cfAction + "', turnstileLanguage='"
+			+ lang +"'");
+
+		logger.info("authenticate: before base method call");
 
 		super.authenticate(context);
 
