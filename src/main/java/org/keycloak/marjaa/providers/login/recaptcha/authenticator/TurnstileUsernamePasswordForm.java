@@ -39,11 +39,13 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 		"XXXX.DUMMY.TOKEN.XXXX"; // https://developers.cloudflare.com/turnstile/troubleshooting/testing/
 
 	private String siteKey;
+	private String cfAction;
 
 	@Override
 	protected Response createLoginForm( LoginFormsProvider form ) {
 		form.setAttribute("turnstileRequired", true);
 		form.setAttribute("turnstileSiteKey", siteKey);
+		form.setAttribute("turnstileAction", cfAction);
 		return super.createLoginForm( form );
 	}
 
@@ -65,14 +67,17 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 		}
 		Map<String, String> cfConfig = captchaConfig.getConfig();
 		siteKey = cfConfig.get(SITE_KEY);
+		cfAction = cfConfig.getOrDefault(ACTION, DEFAULT_ACTION);
 
 		form.addScript("https://challenges.cloudflare.com/turnstile/v0/api.js");
 		form.setAttribute("turnstileRequired", true);
 		form.setAttribute("turnstileSiteKey", siteKey);
-		form.setAttribute("turnstileAction", cfConfig.getOrDefault(ACTION, DEFAULT_ACTION));
+		form.setAttribute("turnstileAction", cfAction);
 		form.setAttribute("turnstileLanguage", userLanguageTag);
 
-		logger.info("authenticate: before base method call");
+		logger.infov("authenticate: set attributes: turnstileSiteKey='{0}', turnstileAction='{1}', turnstileLanguage='{2}'"
+			, siteKey, cfAction, userLanguageTag);
+		logger.infov("authenticate: before base method call");
 
 		super.authenticate(context);
 
