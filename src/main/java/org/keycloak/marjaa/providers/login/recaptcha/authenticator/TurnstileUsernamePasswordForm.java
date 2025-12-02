@@ -93,6 +93,9 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 			String secret = captchaConfig.getConfig().get(SITE_SECRET);
 			String action = captchaConfig.getConfig().getOrDefault(ACTION, DEFAULT_ACTION);
 
+			logger.infov("action: call validateTurnstile(context, success: '{0}', captcha: '{1}', secret: '{2}', action: '{3}'"
+				, success, captcha, secret, action);
+
 			success = validateTurnstile(context, success, captcha, secret, action);
 		}
 		if (success) {
