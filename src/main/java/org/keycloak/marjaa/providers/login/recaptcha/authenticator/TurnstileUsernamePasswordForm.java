@@ -105,8 +105,10 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 			String secret = captchaConfig.getConfig().get(SITE_SECRET);
 			String action = captchaConfig.getConfig().getOrDefault(ACTION, DEFAULT_ACTION);
 
-			logger.infov("action: call validateTurnstile(context, success: '{0}', captcha: '{1}', secret: '{2}', action: '{3}'"
-				, success, captcha, secret, action);
+			logger.info("action: call validateTurnstile(context, success, captcha: '"
+				+ captcha +"', secret: '"
+				+ secret +"', action: '"
+				+ action + "')");
 
 			success = validateTurnstile(context, success, captcha, secret, action);
 		}
@@ -115,7 +117,7 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 
 			super.action(context);
 		} else {
-			logger.info("action: turnstile validation failed");
+			logger.info("action: turnstile validation returns FALSE");
 
 			formData.remove(CF_TURNSTILE_RESPONSE);
             context.failureChallenge(
@@ -144,6 +146,9 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 			InputStream content = response.getEntity().getContent();
 			try {
 				Map json = JsonSerialization.readValue(content, Map.class);
+
+				logger.info("validateTurnstile: response was " + json.toString());
+
 				Object val = json.get("success");
 				success = Boolean.TRUE.equals(val)
 					&& (captcha == TURNSTILE_DUMMY_TOKEN
