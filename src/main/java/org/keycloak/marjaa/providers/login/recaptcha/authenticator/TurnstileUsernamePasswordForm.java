@@ -20,11 +20,11 @@ import org.keycloak.services.validation.Validation;
 import org.keycloak.util.JsonSerialization;
 
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+//import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.*;
 
-public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implements Authenticator{
+public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implements Authenticator {
 	public static final String CF_TURNSTILE_RESPONSE = "cf-turnstile-response";
 	public static final String SITE_KEY = "site.key";
 	public static final String SITE_SECRET = "secret";
@@ -42,14 +42,14 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 	private String cfAction;
 	private String lang;
 
-	@Override
-	protected Response createLoginForm( LoginFormsProvider form ) {
-		form.setAttribute("turnstileRequired", true);
-		form.setAttribute("turnstileSiteKey", siteKey);
-		form.setAttribute("turnstileAction", cfAction);
-		form.setAttribute("turnstileLanguage", lang);
-		return super.createLoginForm( form );
-	}
+	//@Override
+	//protected Response createLoginForm( LoginFormsProvider form ) {
+	//	form.setAttribute("turnstileRequired", true);
+	//	form.setAttribute("turnstileSiteKey", siteKey);
+	//	form.setAttribute("turnstileAction", cfAction);
+	//	form.setAttribute("turnstileLanguage", lang);
+	//	return super.createLoginForm( form );
+	//}
 
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
