@@ -77,13 +77,6 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 		form.setAttribute("turnstileAction", cfAction);
 		form.setAttribute("turnstileLanguage", lang);
 
-		//logger.infov("authenticate: set attributes: turnstileSiteKey='{0}', turnstileAction='{1}', turnstileLanguage='{2}'"
-		//	, siteKey, cfAction, userLanguageTag);
-		logger.info("authenticate: set attributes: turnstileSiteKey='"
-			+ siteKey + "', turnstileAction='"
-			+ cfAction + "', turnstileLanguage='"
-			+ lang +"'");
-
 		logger.info("authenticate: before base method call");
 
 		super.authenticate(context);
@@ -105,16 +98,9 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 			String secret = captchaConfig.getConfig().get(SITE_SECRET);
 			String action = captchaConfig.getConfig().getOrDefault(ACTION, DEFAULT_ACTION);
 
-			logger.info("action: call validateTurnstile(context, success, captcha: '"
-				+ captcha +"', secret: '"
-				+ secret +"', action: '"
-				+ action + "')");
-
 			success = validateTurnstile(context, success, captcha, secret, action);
 		}
 		if (success) {
-			logger.info("action: before base method call");
-
 			super.action(context);
 		} else {
 			logger.info("action: turnstile validation returns FALSE");
@@ -147,12 +133,12 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 			try {
 				Map json = JsonSerialization.readValue(content, Map.class);
 
-				logger.info("validateTurnstile: response was " + json.toString());
+				logger.infof("validateTurnstile: response was %s", json.toString());
 
 				Object val = json.get("success");
 				success = Boolean.TRUE.equals(val)
 					&& (captcha == TURNSTILE_DUMMY_TOKEN
-						|| json.get("action") == action);
+						|| json.get("action").toString() == action);
 			} finally {
 				content.close();
 			}
