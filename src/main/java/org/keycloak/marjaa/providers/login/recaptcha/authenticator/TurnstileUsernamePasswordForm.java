@@ -133,12 +133,14 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 			try {
 				Map json = JsonSerialization.readValue(content, Map.class);
 
-				logger.infof("validateTurnstile: response was %s", json.toString());
+				Boolean validationStatus = Boolean.TRUE.equals(json.get("success"));
+				Boolean isCorrectAction = action.equals(json.get("action"));
 
-				Object val = json.get("success");
-				success = Boolean.TRUE.equals(val)
-					&& (captcha == TURNSTILE_DUMMY_TOKEN
-						|| json.get("action").toString() == action);
+				logger.infof("validateTurnstile: validationStatus=%s, isCorrectAction=%s, response was %s"
+					, validationStatus, isCorrectAction, json.toString());
+				
+				success = validationStatus
+					&& (captcha == TURNSTILE_DUMMY_TOKEN || isCorrectAction);
 			} finally {
 				content.close();
 			}
