@@ -15,6 +15,9 @@ import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.events.Details;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.AuthenticatorConfigModel;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.FormMessage;
 import org.keycloak.services.validation.Validation;
 import org.keycloak.util.JsonSerialization;
@@ -100,6 +103,15 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 
 		logger.info("action: end");
 	}
+
+    @Override
+    public boolean configuredFor(KeycloakSession session, RealmModel realm, UserModel user) {
+        if (user == null) {
+            logger.info("Turnstile was not required if no user provided.");
+            return false;
+        }
+        return true;
+    }	
 
 	private void prepareForm(AuthenticationFlowContext context) {
 		AuthenticatorConfigModel captchaConfig = context.getAuthenticatorConfig();
