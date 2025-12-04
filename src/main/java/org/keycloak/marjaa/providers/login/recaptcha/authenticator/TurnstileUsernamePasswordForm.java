@@ -20,7 +20,8 @@ import org.keycloak.services.validation.Validation;
 import org.keycloak.util.JsonSerialization;
 
 import javax.ws.rs.core.MultivaluedMap;
-//import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response;
+
 import java.io.InputStream;
 import java.util.*;
 
@@ -42,47 +43,31 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 	private String cfAction;
 	private String lang;
 
-	//@Override
-	//protected Response createLoginForm( LoginFormsProvider form ) {
-	//	form.setAttribute("turnstileRequired", true);
-	//	form.setAttribute("turnstileSiteKey", siteKey);
-	//	form.setAttribute("turnstileAction", cfAction);
-	//	form.setAttribute("turnstileLanguage", lang);
-	//	return super.createLoginForm( form );
-	//}
-
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
-		context.getEvent().detail(Details.AUTH_METHOD, "auth_method");
-
 		logger.info("authenticate: start");
 
-		AuthenticatorConfigModel captchaConfig = context.getAuthenticatorConfig();
-		LoginFormsProvider form = context.form();
+		context.getEvent().detail(Details.AUTH_METHOD, "auth_method");
 
-		if (captchaConfig == null || captchaConfig.getConfig() == null
-				|| captchaConfig.getConfig().get(SITE_KEY) == null
-				|| captchaConfig.getConfig().get(SITE_SECRET) == null) {
-			form.addError(new FormMessage(null, MSG_TURNSTILE_NOT_CONFIGURED));
-			return;
-		}
-		Map<String, String> cfConfig = captchaConfig.getConfig();
-		siteKey = cfConfig.get(SITE_KEY);
-		cfAction = cfConfig.getOrDefault(ACTION, DEFAULT_ACTION);
-		lang = context.getSession().getContext().resolveLocale(context.getUser()).toLanguageTag();
-
-		form.addScript("https://challenges.cloudflare.com/turnstile/v0/api.js");
-		form.setAttribute("turnstileRequired", true);
-		form.setAttribute("turnstileSiteKey", siteKey);
-		form.setAttribute("turnstileAction", cfAction);
-		form.setAttribute("turnstileLanguage", lang);
-
-		logger.info("authenticate: before base method call");
+		prepareForm(context);
 
 		super.authenticate(context);
 
 		logger.info("authenticate: end");
 	}
+
+	@Override
+    protected Response challenge(AuthenticationFlowContext context, MultivaluedMap<String, String> formData) {
+		logger.info("challenge: start");
+
+		prepareForm(context);
+
+		Response response = super.challenge(context, formData);
+
+		logger.info("challenge: end");
+
+		return response;
+    }
 
 	@Override
 	public void action(AuthenticationFlowContext context) {
@@ -116,7 +101,29 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 		logger.info("action: end");
 	}
 
-	protected boolean validateTurnstile(AuthenticationFlowContext context, boolean success, String captcha, String secret, String action) {
+	private void prepareForm(AuthenticationFlowContext context) {
+		AuthenticatorConfigModel captchaConfig = context.getAuthenticatorConfig();
+		LoginFormsProvider form = context.form();
+
+		if (captchaConfig == null || captchaConfig.getConfig() == null
+				|| captchaConfig.getConfig().get(SITE_KEY) == null
+				|| captchaConfig.getConfig().get(SITE_SECRET) == null) {
+			form.addError(new FormMessage(null, MSG_TURNSTILE_NOT_CONFIGURED));
+			return;
+		}
+		Map<String, String> cfConfig = captchaConfig.getConfig();
+		siteKey = cfConfig.get(SITE_KEY);
+		cfAction = cfConfig.getOrDefault(ACTION, DEFAULT_ACTION);
+		lang = context.getSession().getContext().resolveLocale(context.getUser()).toLanguageTag();
+
+		form.addScript("https://challenges.cloudflare.com/turnstile/v0/api.js");
+		form.setAttribute("turnstileRequired", true);
+		form.setAttribute("turnstileSiteKey", siteKey);
+		form.setAttribute("turnstileAction", cfAction);
+		form.setAttribute("turnstileLanguage", lang);
+	}
+
+	private boolean validateTurnstile(AuthenticationFlowContext context, boolean success, String captcha, String secret, String action) {
 		logger.info("validateTurnstile: start");
 
 		HttpClient httpClient = context.getSession().getProvider(HttpClientProvider.class).getHttpClient();
