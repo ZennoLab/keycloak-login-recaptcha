@@ -12,7 +12,6 @@ import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.authenticators.browser.UsernamePasswordForm;
 import org.keycloak.connections.httpclient.HttpClientProvider;
-import org.keycloak.events.Details;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.KeycloakSession;
@@ -48,38 +47,23 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
-		logger.info("authenticate: start");
-
-		context.getEvent().detail(Details.AUTH_METHOD, "auth_method");
-
 		prepareForm(context);
 
 		super.authenticate(context);
-
-		logger.info("authenticate: end");
 	}
 
 	@Override
 	protected Response challenge(AuthenticationFlowContext context, String error, String field) {
-		logger.info("challenge: start");
-
 		prepareForm(context);
 
-		Response response = super.challenge(context, error, field);
-
-		logger.info("challenge: end");
-
-		return response;
+		return super.challenge(context, error, field);
     }
 
 	@Override
 	public void action(AuthenticationFlowContext context) {
-		logger.info("action: start");
-		
 		MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
 		boolean success = false;
-		context.getEvent().detail(Details.AUTH_METHOD, "auth_method");
-
+		
 		String captcha = formData.getFirst(CF_TURNSTILE_RESPONSE);
 		if (!Validation.isBlank(captcha)) {
 			AuthenticatorConfigModel captchaConfig = context.getAuthenticatorConfig();
@@ -91,7 +75,9 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 		if (success) {
 			super.action(context);
 		} else {
-			logger.info("action: turnstile validation returns FALSE");
+			if (logger.isInfoEnabled()) {
+				logger.info("action: turnstile validation returns FALSE");
+			}
 
 			formData.remove(CF_TURNSTILE_RESPONSE);
             context.failureChallenge(
@@ -100,8 +86,6 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 
 			return;
 		}
-
-		logger.info("action: end");
 	}
 
     @Override
@@ -136,8 +120,6 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 	}
 
 	private boolean validateTurnstile(AuthenticationFlowContext context, boolean success, String captcha, String secret, String action) {
-		logger.info("validateTurnstile: start");
-
 		HttpClient httpClient = context.getSession().getProvider(HttpClientProvider.class).getHttpClient();
 		HttpPost post = new HttpPost("https://challenges.cloudflare.com/turnstile/v0/siteverify");
 		List<NameValuePair> formparams = new LinkedList<>();
@@ -155,19 +137,24 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 				Boolean validationStatus = Boolean.TRUE.equals(json.get("success"));
 				Boolean isCorrectAction = action.equals(json.get("action"));
 
-				logger.infof("validateTurnstile: validationStatus=%s, isCorrectAction=%s, response was %s"
-					, validationStatus, isCorrectAction, json.toString());
-				
 				success = validationStatus
 					&& (captcha == TURNSTILE_DUMMY_TOKEN || isCorrectAction);
+
+				if (success) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("validateTurnstile: success");
+					}			
+				}
+				else if (logger.isInfoEnabled()) {
+					logger.infof("validateTurnstile: failed (validationStatus=%s, isCorrectAction=%s, response was %s)"
+						, validationStatus, isCorrectAction, json.toString());
+				}
 			} finally {
 				content.close();
 			}
 		} catch (Exception e) {
 			logger.errorf(e, "Failed to validate Turnstile response: %s", e.getMessage());
 		}
-
-		logger.info("validateTurnstile: end");
 
 		return success;
 	}
