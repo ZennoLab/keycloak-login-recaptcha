@@ -57,12 +57,12 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 	}
 
 	@Override
-    protected Response challenge(AuthenticationFlowContext context, MultivaluedMap<String, String> formData) {
+	protected Response challenge(AuthenticationFlowContext context, String error, String field) {
 		logger.info("challenge: start");
 
 		prepareForm(context);
 
-		Response response = super.challenge(context, formData);
+		Response response = super.challenge(context, error, field);
 
 		logger.info("challenge: end");
 
