@@ -40,8 +40,7 @@
                         </div>
                     </div>
                 </#if>
-
-                <#if turnstileRequired??>
+                <#elseif turnstileRequired??>
                     <div class="form-group">
                         <div class="${properties.kcInputWrapperClass!}">
                             <div class="cf-turnstile" data-sitekey="${turnstileSiteKey}" data-action="${turnstileAction}" data-language="${turnstileLanguage}"></div>
