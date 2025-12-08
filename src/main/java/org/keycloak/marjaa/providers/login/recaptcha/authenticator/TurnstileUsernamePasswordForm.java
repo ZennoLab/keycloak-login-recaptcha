@@ -41,10 +41,6 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 	private static final String TURNSTILE_DUMMY_TOKEN =
 		"XXXX.DUMMY.TOKEN.XXXX"; // https://developers.cloudflare.com/turnstile/troubleshooting/testing/
 
-	private String siteKey;
-	private String cfAction;
-	private String lang;
-
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
 		prepareForm(context);
@@ -83,8 +79,6 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
             context.failureChallenge(
                 AuthenticationFlowError.INVALID_CREDENTIALS,
                 challenge(context, MSG_TURNSTILE_FAILED));
-
-			return;
 		}
 	}
 
@@ -108,14 +102,12 @@ public class TurnstileUsernamePasswordForm extends UsernamePasswordForm implemen
 			return;
 		}
 		Map<String, String> cfConfig = captchaConfig.getConfig();
-		siteKey = cfConfig.get(SITE_KEY);
-		cfAction = cfConfig.getOrDefault(ACTION, DEFAULT_ACTION);
-		lang = context.getSession().getContext().resolveLocale(context.getUser()).toLanguageTag();
+		String lang = context.getSession().getContext().resolveLocale(context.getUser()).toLanguageTag();
 
 		form.addScript("https://challenges.cloudflare.com/turnstile/v0/api.js");
 		form.setAttribute("turnstileRequired", true);
-		form.setAttribute("turnstileSiteKey", siteKey);
-		form.setAttribute("turnstileAction", cfAction);
+		form.setAttribute("turnstileSiteKey", cfConfig.get(SITE_KEY));
+		form.setAttribute("turnstileAction", cfConfig.getOrDefault(ACTION, DEFAULT_ACTION));
 		form.setAttribute("turnstileLanguage", lang);
 	}
 
